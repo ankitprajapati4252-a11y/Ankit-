@@ -1,0 +1,413 @@
+<?php
+session_start();
+$conn = mysqli_connect("localhost", "root", "root", "hotel_ankit");
+if(!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+?>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>अंकित होटल - इंदौर</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Arial, sans-serif; }
+        body { background:#f8f9fa; color:#333; }
+        
+        /* Navbar */
+        .navbar { background:linear-gradient(135deg, #1a2a3a, #2c3e50); padding:18px 40px; display:flex; justify-content:space-between; align-items:center; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1); position:sticky; top:0; z-index:1000; }
+        .logo { font-size:28px; font-weight:bold; color:#f39c12; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
+        .nav-links { display:flex; gap:25px; }
+        .nav-links a { color:white; text-decoration:none; font-weight:500; padding:8px 15px; border-radius:5px; transition:all 0.3s; }
+        .nav-links a:hover { background:rgba(255,255,255,0.1); color:#f39c12; }
+        
+        /* Hero Section */
+        .hero { 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.3rem; margin-bottom: 30px; opacity: 0.9; }
+        .btn { background: #e74c3c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 18px; transition: all 0.3s; border: none; cursor: pointer; }
+        .btn:hover { background: #c0392b; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        /* Rooms & Food Cards */
+        .section-title { text-align: center; font-size: 2.5rem; margin: 60px 0 40px; color: #2c3e50; position: relative; }
+        .section-title::after { content: ''; display: block; width: 100px; height: 4px; background: #e74c3c; margin: 15px auto; border-radius: 2px; }
+        
+        .room-grid, .food-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 35px; 
+            padding: 20px 40px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
+        
+        .room-card, .food-card { 
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        .room-card:hover, .food-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .room-img, .food-img { 
+            height: 240px; 
+            width: 100%; 
+            object-fit: cover; 
+            transition: transform 0.5s;
+        }
+        .room-card:hover .room-img, .food-card:hover .food-img {
+            transform: scale(1.05);
+        }
+        
+        .room-info, .food-info { 
+            padding: 25px; 
+            position: relative;
+        }
+        
+        .room-info h3, .food-info h3 { 
+            font-size: 1.6rem; 
+            margin-bottom: 10px; 
+            color: #2c3e50;
+        }
+        
+        .room-info p, .food-info p { 
+            color: #666; 
+            line-height: 1.6; 
+            margin-bottom: 15px;
+        }
+        
+        .price { 
+            color: #e74c3c; 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            display: flex; 
+            align-items: center; 
+            margin: 15px 0;
+        }
+        .price::before { content: '₹'; margin-right: 2px; }
+        
+        .category { 
+            display: inline-block; 
+            padding: 5px 15px; 
+            background: #ecf0f1; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            color: #7f8c8d; 
+            margin-bottom: 10px;
+        }
+        
+        /* Footer */
+        footer { 
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50); 
+            color: white; 
+            text-align: center; 
+            padding: 50px 20px; 
+            margin-top: 80px;
+        }
+        
+        .contact-info { 
+            display: flex; 
+            justify-content: center; 
+            gap: 50px; 
+            margin: 30px 0; 
+            flex-wrap: wrap;
+        }
+        
+        .contact-info div { 
+            text-align: center;
+        }
+        
+        .contact-icon { 
+            font-size: 2rem; 
+            margin-bottom: 10px; 
+            color: #f39c12;
+        }
+        
+        /* Quick Booking */
+        .quick-booking { 
+            max-width: 900px; 
+            margin: 50px auto; 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .booking-form { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 20px; 
+            align-items: end;
+        }
+        
+        .form-group { 
+            margin-bottom: 0;
+        }
+        
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #2c3e50;
+        }
+        
+        .form-group input { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 1rem; 
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus { 
+            border-color: #3498db; 
+            outline: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .room-grid, .food-grid { grid-template-columns: 1fr; padding: 20px; }
+            .nav-links { flex-direction: column; gap: 10px; }
+            .navbar { flex-direction: column; padding: 20px; }
+            .hero h1 { font-size: 2.5rem; }
+            .booking-form { grid-template-columns: 1fr; }
+            .contact-info { flex-direction: column; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">अंकित होटल इंदौर</div>
+        <div class="nav-links">
+            <a href="index.php">होम</a>
+            <a href="#rooms">कमरे</a>
+            <a href="#food">खाना</a>
+            <?php if(isset($_SESSION['user_id'])): ?>
+                <a href="dashboard.php">डैशबोर्ड</a>
+                <a href="mybookings.php">मेरी बुकिंग्स</a>
+                <a href="logout.php">लॉगआउट</a>
+            <?php else: ?>
+                <a href="login.php">लॉगिन</a>
+                <a href="register.php">रजिस्टर</a>
+            <?php endif; ?>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>अंकित होटल में आपका स्वागत है</h1>
+        <p>चिताड़, इंदौर | फोन: 7697878985</p>
+        <?php if(!isset($_SESSION['user_id'])): ?>
+            <a href="register.php" class="btn">अभी बुक करें</a>
+        <?php else: ?>
+            <a href="booking.php" class="btn">कमरा बुक करें</a>
+        <?php endif; ?>
+    </section>
+
+    <!-- Quick Booking Form -->
+    <?php if(isset($_SESSION['user_id'])): ?>
+    <div class="quick-booking">
+        <h2 style="text-align:center; margin-bottom:30px; color:#2c3e50;">⚡ त्वरित बुकिंग</h2>
+        <form action="booking.php" method="POST" class="booking-form">
+            <div class="form-group">
+                <label>📅 चेक-इन</label>
+                <input type="date" name="check_in" required>
+            </div>
+            <div class="form-group">
+                <label>📅 चेक-आउट</label>
+                <input type="date" name="check_out" required>
+            </div>
+            <div class="form-group">
+                <label>👥 अतिथि</label>
+                <input type="number" name="guests" min="1" max="5" value="2" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn" style="width:100%;">🔍 कमरे देखें</button>
+            </div>
+        </form>
+    </div>
+    <?php endif; ?>
+
+    <!-- Rooms Section -->
+    <h2 class="section-title" id="rooms">🏨 हमारे कमरे</h2>
+    <div class="room-grid">
+        <?php
+        $rooms = mysqli_query($conn, "SELECT * FROM rooms");
+        while($room = mysqli_fetch_assoc($rooms)):
+        ?>
+        <div class="room-card">
+            <img src="<?php echo $room['image_url']; ?>" alt="<?php echo $room['room_type']; ?>" class="room-img">
+            <div class="room-info">
+                <h3><?php echo $room['room_type']; ?></h3>
+                <p><?php echo $room['description']; ?></p>
+                <p>👥 क्षमता: <?php echo $room['capacity']; ?> व्यक्ति</p>
+                <div class="price"><?php echo $room['price_per_night']; ?>/रात</div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <a href="booking.php?room_id=<?php echo $room['id']; ?>" class="btn">बुक करें</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn">बुक करने के लिए लॉगिन करें</a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endwhile; ?>
+    </div>
+
+    <!-- Food Section -->
+    <h2 class="section-title" id="food">🍽️ हमारा रेस्टोरेंट</h2>
+    <div class="food-grid">
+        <?php
+        $foods = mysqli_query($conn, "SELECT * FROM food_items");
+        while($food = mysqli_fetch_assoc($foods)):
+        ?>
+        <div class="food-card">
+            <img src="<?php echo $food['image_url']; ?>" alt="<?php echo $food['name']; ?>" class="food-img">
+            <div class="food-info">
+                <span class="category"><?php echo $food['category']; ?></span>
+                <h3><?php echo $food['name']; ?></h3>
+                <p><?php echo $food['description']; ?></p>
+                <div class="price"><?php echo $food['price']; ?></div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <button class="btn add-to-cart" data-id="<?php echo $food['id']; ?>" data-name="<?php echo $food['name']; ?>" data-price="<?php echo $food['price']; ?>">🛒 ऑर्डर करें</button>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endwhile; ?>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <h3 style="font-size:28px; margin-bottom:20px;">अंकित होटल इंदौर</h3>
+        <div class="contact-info">
+            <div>
+                <div class="contact-icon">📍</div>
+                <p>चिताड़, इंदौर,<br>मध्य प्रदेश 452001</p>
+            </div>
+            <div>
+                <div class="contact-icon">📞</div>
+                <p>7697878985<br>24x7 हेल्पलाइन</p>
+            </div>
+            <div>
+                <div class="contact-icon">✉️</div>
+                <p>info@ankithotelindore.com<br>reservation@ankithotelindore.com</p>
+            </div>
+        </div>
+        <p style="margin-top:30px; opacity:0.8;">© 2024 अंकित होटल. सभी अधिकार सुरक्षित</p>
+    </footer>
+
+    <!-- JavaScript for Add to Cart -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartButtons = document.querySelectorAll('.add-to-cart');
+        let cart = [];
+        
+        cartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const foodId = this.getAttribute('data-id');
+                const foodName = this.getAttribute('data-name');
+                const foodPrice = this.getAttribute('data-price');
+                
+                // Add to cart array
+                cart.push({
+                    id: foodId,
+                    name: foodName,
+                    price: foodPrice
+                });
+                
+                // Show notification
+                showNotification(`✅ ${foodName} कार्ट में ऐड हो गया!`);
+                
+                // Update cart count
+                updateCartCount();
+            });
+        });
+        
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #2ecc71;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        function updateCartCount() {
+            let cartCount = document.getElementById('cart-count');
+            if (!cartCount) {
+                // Create cart count badge
+                cartCount = document.createElement('span');
+                cartCount.id = 'cart-count';
+                cartCount.style.cssText = `
+                    background: #e74c3c;
+                    color: white;
+                    border-radius: 50%;
+                    padding: 2px 8px;
+                    font-size: 12px;
+                    position: absolute;
+                    top: -5px;
+                    right: -5px;
+                `;
+                
+                // Find nav links and add cart icon
+                const navLinks = document.querySelector('.nav-links');
+                const cartLink = document.createElement('a');
+                cartLink.href = '#';
+                cartLink.innerHTML = '🛒 कार्ट';
+                cartLink.style.position = 'relative';
+                cartLink.appendChild(cartCount);
+                navLinks.appendChild(cartLink);
+            }
+            
+            cartCount.textContent = cart.length;
+        }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    });
+    </script>
+</body>
+</html>
